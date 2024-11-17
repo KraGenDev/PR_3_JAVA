@@ -1,78 +1,164 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
-public class Calculator {
+public class Calculator
+{
 
-    private List<ArithmeticOperation> _actions;
-
-    public Calculator() {
-        Addition addition = new Addition('+');
-        Subtraction subtraction = new Subtraction('-');
-        Division division = new Division('/');
-        Multiplication multiplication = new Multiplication('*');
-        SquareRoot squareRoot = new SquareRoot('^');
-
-        _actions = new ArrayList<>();
-        _actions.add(addition);
-        _actions.add(subtraction);
-        _actions.add(division);
-        _actions.add(multiplication);
-        _actions.add(squareRoot);
-    }
-
-    public void Start() throws InvalidInputException {
+    public void Start()
+    {
         Scanner scanner = new Scanner(System.in);
 
-        double a = GetValidDoubleInput(scanner, "Введіть перше число: ");
-        double b = GetValidDoubleInput(scanner, "Введіть друге число: ");
+        try
+        {
+            char operationSymbol = SelectValidOperation(scanner);;
 
-        StringBuilder actions = new StringBuilder();
-        for (ArithmeticOperation action : _actions) {
-            actions.append(action.OperationSymbol).append(" ");
-        }
+            double num1 = GetValidDoubleInput(scanner, "Введіть перше число: ");
+            double num2 = 0;
 
-        while (true) {
-            System.out.println("Доступні дії: " + actions);
-            System.out.print("Яку дію виконати?: ");
-            char actionSymbol = scanner.next().charAt(0);
+            if(operationSymbol != '^')
+            {
+                num2 = GetValidDoubleInput(scanner, "Введіть друге число: ");
+            }
 
-            ArithmeticOperation selectedAction = null;
+            double result = 0;
 
-            for (ArithmeticOperation action : _actions) {
-                if (action.OperationSymbol == actionSymbol) {
-                    selectedAction = action;
+            switch (operationSymbol)
+            {
+                case '+':
+                    result = Addition(num1, num2);
                     break;
-                }
+                case '-':
+                    result = Subtraction(num1, num2);
+                    break;
+                case '*':
+                    result = Multiplication(num1, num2);
+                    break;
+                case '/':
+                    try
+                    {
+                        result = Division(num1, num2);
+                    }
+                    catch (ArithmeticException e)
+                    {
+                        System.out.println(e.getMessage());
+                    }
+                    break;
+                case '^':
+                    try
+                    {
+                        result = SquareRoot(num1);
+                    }
+                    catch (InvalidInputException e)
+                    {
+                        System.out.println(e.getMessage());
+                    }
+                    break;
             }
 
-            if (selectedAction != null) {
-                double result = selectedAction.Calculate(a, b);
-                System.out.println("Результат: " + result);
-                break;
-            } else {
-                System.out.println("Невірний символ дії! Спробуйте знову.");
+            if(operationSymbol != '^')
+            {
+                System.out.println(num1 + " " + operationSymbol + " " +  num2 + " = " + result);
+            }
+            else
+            {
+                System.out.println(num1 + "" + operationSymbol +" = " + result);
             }
         }
-
-        scanner.close();
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+        }
+        finally
+        {
+            scanner.close();
+        }
     }
 
-
-    private double GetValidDoubleInput(Scanner scanner, String prompt) {
-        double input = 0;
-        while (true) {
+    private double GetValidDoubleInput(Scanner scanner, String prompt)
+    {
+        while (true)
+        {
             System.out.print(prompt);
-            if (scanner.hasNextDouble()) {
-                input = scanner.nextDouble();
-                break;
-            } else {
-                System.out.println("Помилка: Будь ласка введіть число");
+            if (scanner.hasNextDouble())
+            {
+                return scanner.nextDouble();
+            }
+            else
+            {
+                System.out.println("Помилка: Будь ласка, введіть дійсне число.");
                 scanner.next();
             }
         }
-        return input;
+    }
+
+    private char SelectValidOperation(Scanner scanner)
+    {
+        char operationSymbol;
+        while (true)
+        {
+            System.out.println("Доступні операції: \n+ Додавання \n- Віднімання\n/ Ділення\n* Множення\n^ Зведення до кореня");
+            System.out.print("Оберіть операцію: ");
+            operationSymbol = scanner.next().charAt(0);
+
+            if(operationSymbol == '+' || operationSymbol == '-' || operationSymbol == '*' || operationSymbol == '/' || operationSymbol == '^')
+                break;
+            else
+            {
+                System.out.println("\nНевірно вказаний символ операції");
+            }
+        }
+
+        return operationSymbol;
+    }
+
+    public double Addition(double num1, double num2) throws InvalidInputException
+    {
+        if (Double.isInfinite(num1) || Double.isInfinite(num2))
+        {
+            throw new InvalidInputException("Один із вхідних параметрів є нескінченним");
+        }
+
+        return num1 + num2;
+    }
+
+    public double Subtraction(double num1, double num2) throws InvalidInputException
+    {
+        if (Double.isInfinite(num1) || Double.isInfinite(num2))
+        {
+            throw new InvalidInputException("Один із вхідних параметрів є нескінченним");
+        }
+
+        return num1 - num2;
+    }
+
+    public double Multiplication(double num1, double num2) throws InvalidInputException
+    {
+        if (Double.isInfinite(num1) || Double.isInfinite(num2))
+        {
+            throw new InvalidInputException("Один із вхідних параметрів є нескінченним");
+        }
+
+        return num1 * num2;
+    }
+
+    public double Division(double num1, double num2)
+    {
+        if (num2 == 0)
+        {
+            throw new ArithmeticException("Ділення на нуль неможливе!");
+        }
+
+        return num1 / num2;
+    }
+
+    public double SquareRoot(double num) throws InvalidInputException
+    {
+        if (num < 0)
+        {
+            throw new InvalidInputException("Неможливо взяти квадратний корінь з від'ємного числа!");
+        }
+
+        return Math.sqrt(num);
     }
 }
